@@ -1,0 +1,50 @@
+// Color Variables
+$black: #000000;
+$white: #fff;
+$light-gray: #f9f3f0;
+$lighter-gray: #FCFCF8;
+$lightest-gray: #F6EBE7;
+$navy-blue: #001f3f;
+$ice-blue: #87CEFA;
+$light-tan: #C2A74E;
+$dark-tan: #8a6e3b;
+$lighter-brown: #faf6f2;
+$subtitle-color: #CDA29145;
+$blue-gradient: linear-gradient(to bottom, $black, $navy-blue, $ice-blue, $light-tan);
+
+// Font Variables
+$primary-font: 'Inter';
+$logo-font: 'Algerian', sans-serif;
+$tertiary-font: 'Edwardian Script ITC';
+$button-font: $primary-font;
+$subtitle-font: "Mrs Saint Delafield", serif;
+
+// Font Weights
+$font-weight-thin: 100;
+$font-weight-extra-light: 200;
+$font-weight-light: 300;
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semi-bold: 600;
+$font-weight-bold: 700;
+$font-weight-extra-bold: 800;
+$font-weight-black: 900;
+
+
+// Breakpoints for Responsive Design
+$mobile: 576px;
+$tablet: 768px;
+$laptop: 992px;
+$desktop: 1200px;
+
+// Navbar Styles
+$navbar-bg: $blue-gradient;
+$navbar-text-color: white;
+$navbar-hover-color: $ice-blue;
+
+// Button Styles
+$button-bg: $navy-blue;
+$button-text-color: white;
+$button-hover-bg: $ice-blue;
+$button-hover-text-color: $black;
+
