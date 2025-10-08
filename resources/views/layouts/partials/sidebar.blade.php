@@ -49,7 +49,25 @@
                     </a>
                 </li>
             @endcan
+            <li class="nav-item">
+                <a class="nav-link @if (request()->routeIs('admin.payment-settings.*')) active @endif"
+                    href="{{ route('admin.payment-settings.index') }}">
+                    <div class="icon icon-shape icon-sm text-center d-flex align-items-center justify-content-center">
+                        <i class="fa-solid fa-house text-black text-sm "></i>
+                    </div>
+                    <span class="sidenav-normal nav-link-text text-black">Payment Setting<b class="caret"></b></span>
+                </a>
+            </li>
 
+            {{-- <li class="nav-item">
+                <a class="nav-link @if (request()->routeIs('admin.enrollment.form.*')) active @endif"
+                    href="{{ route('admin.enrollment.index') }}">
+                    <div class="icon icon-shape icon-sm text-center d-flex align-items-center justify-content-center">
+                        <i class="fa-solid fa-house text-black text-sm "></i>
+                    </div>
+                    <span class="sidenav-normal nav-link-text text-black">Enrollment Form<b class="caret"></b></span>
+                </a>
+            </li> --}}
         </ul>
     </div>
 </aside>

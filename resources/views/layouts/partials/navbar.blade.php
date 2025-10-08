@@ -41,11 +41,11 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end user-dropdown" id="accountDropdownMenu"
                             style="display:none;">
-                            <li>
+                            {{-- <li>
                                 <a class="dropdown-item" href="{{ route('admin.change-password-admin') }}">
                                     <i class="fa fa-key me-2"></i> Change Password
                                 </a>
-                            </li>
+                            </li> --}}
                             <li>
                                 <a class="dropdown-item" href="{{ route('logout') }}"
                                     onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
