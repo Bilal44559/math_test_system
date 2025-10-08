@@ -40,7 +40,7 @@
 
             @can('users')
                 <li class="nav-item">
-                    <a class="nav-link @if (request()->routeIs('admin.users.*') && !request()->routeIs('admin.users.customers')) active @endif"
+                    <a class="nav-link @if (request()->routeIs('admin.users.*')) active @endif"
                         href="{{ route('admin.users.index') }}">
                         <div class="icon icon-shape icon-sm text-center d-flex align-items-center justify-content-center">
                             <i class="fa-solid fa-house text-black text-sm "></i>

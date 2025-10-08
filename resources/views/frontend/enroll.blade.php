@@ -31,7 +31,7 @@
                           <div class="col-md-3">
                               <label class="form-label fw-semibold text-secondary">Age (Months)</label>
                               <input type="number" class="form-control rounded-pill" placeholder="Months" required
-                                  min="0" max="11">
+                                  min="1" max="12">
                               <div class="invalid-feedback">Please enter valid months (1–12).</div>
                           </div>
 
@@ -92,7 +92,7 @@
                                   <input type="text" maxlength="1" class="form-control px-1 text-center post-code"
                                       style="width: 45px;" required>
                               </div>
-                              <div id="postal-error" class="text-danger mt-2 d-none">Pattern is T6R 0G7</div>
+                              {{-- <div id="postal-error" class="text-danger mt-2 d-none">Pattern is T6R 0G7</div> --}}
                           </div>
                           <div class="col-12">
                               <label class="form-label fw-semibold text-secondary">Street Address</label>
@@ -102,9 +102,8 @@
 
                           <div class="col-12 text-center">
 
-                              <a href="{{ route('payment') }}" type="submit"
-                                  class="btn btn-primary rounded-pill px-5 py-2 mt-3">Submit
-                                  Enrollment</a>
+                              <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 mt-3">Submit
+                                  Enrollment</button>
                           </div>
                       </form>
                   </div>
@@ -137,39 +136,36 @@
               const inputs = document.querySelectorAll(".post-code");
               const errorDiv = document.getElementById("postal-error");
 
-              inputs.forEach((input, index) => {
-                  input.addEventListener("input", function() {
-                      this.value = this.value.toUpperCase();
+              //   inputs.forEach((input, index) => {
+              //       input.addEventListener("input", function() {
+              //           this.value = this.value.toUpperCase();
 
-                      const isLetter = /^[A-Za-z]$/.test(this.value);
-                      const isNumber = /^\d$/.test(this.value);
+              //           const isLetter = /^[A-Za-z]$/.test(this.value);
+              //           const isNumber = /^\d$/.test(this.value);
 
-                      // Positions 0, 2, 4 = letters; 1, 3, 5 = numbers
-                      if ((index % 2 === 0 && !isLetter) || (index % 2 !== 0 && !isNumber)) {
-                          this.value = "";
-                          errorDiv.classList.remove("d-none");
-                      } else {
-                          errorDiv.classList.add("d-none");
-                      }
+              //           // Positions 0, 2, 4 = letters; 1, 3, 5 = numbers
+              //           if ((index % 2 === 0 && !isLetter) || (index % 2 !== 0 && !isNumber)) {
+              //               this.value = "";
+              //               errorDiv.classList.remove("d-none");
+              //           } else {
+              //               errorDiv.classList.add("d-none");
+              //           }
 
-                      // Auto-move to next input
-                      if (this.value.length === 1 && index < inputs.length - 1) {
-                          inputs[index + 1].focus();
-                      }
-                  });
+              //           // Auto-move to next input
+              //           if (this.value.length === 1 && index < inputs.length - 1) {
+              //               inputs[index + 1].focus();
+              //           }
+              //       });
 
-                  // Move backward on Backspace
-                  input.addEventListener("keydown", function(e) {
-                      if (e.key === "Backspace" && this.value === "" && index > 0) {
-                          inputs[index - 1].focus();
-                      }
-                  });
-              });
+              //       // Move backward on Backspace
+              //       input.addEventListener("keydown", function(e) {
+              //           if (e.key === "Backspace" && this.value === "" && index > 0) {
+              //               inputs[index - 1].focus();
+              //           }
+              //       });
+              //   });
           });
       </script>
   @endsection
   @section('footer')
-      <footer>
-          <p>© 2025 Math Academy</p>
-      </footer>
   @endsection

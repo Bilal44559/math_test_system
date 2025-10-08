@@ -1,12 +1,9 @@
 @extends('frontend.layouts.app')
 @section('title')
-    Terms 
+    Terms
 @endsection
 @section('content')
-<p>Terms & conditions</p>
+    <p>Terms & conditions</p>
 @endsection
 @section('footer')
-       <footer>
-    <p>© 2025 Math Academy</p>
-  </footer>
-  @endsection
+@endsection

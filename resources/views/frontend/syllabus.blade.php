@@ -27,7 +27,5 @@
       </section>
   @endsection
   @section('footer')
-      <footer>
-          <p>© 2025 Math Academy</p>
-      </footer>
+      
   @endsection

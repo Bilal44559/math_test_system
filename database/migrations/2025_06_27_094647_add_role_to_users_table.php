@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             // Add 'role' column after 'password' with default value
             if (!Schema::hasColumn('users', 'role')) {
-                $table->string('role')->default('customer')->after('password');
+                $table->string('role')->default('admin')->after('password');
             }
         });
     }

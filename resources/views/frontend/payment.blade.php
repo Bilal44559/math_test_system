@@ -60,6 +60,18 @@
                                 <option>2028</option>
                                 <option>2029</option>
                                 <option>2030</option>
+                                <option>2030</option>
+                                <option>2030</option>
+                                <option>2031</option>
+                                <option>2032</option>
+                                <option>2033</option>
+                                <option>2034</option>
+                                <option>2035</option>
+                                <option>2036</option>
+                                <option>2037</option>
+                                <option>2038</option>
+                                <option>2039</option>
+                                <option>2040</option>
                             </select>
                             <div class="invalid-feedback">Select a valid year.</div>
                         </div>
@@ -74,8 +86,10 @@
 
                     <div class="text-center mt-4">
                         <p class="text-muted mb-2">Accepted Cards:</p>
-                        <img src="visa_logo.png" alt="Visa" style="height: 22px; width: 60px;">
-                        <img src="master_logo.png" alt="Mastercard" style="height: 35px; width: 60px;">
+                        <img src="{{ asset('build/images/visa_logo.png') }}" alt="Visa"
+                            style="height: 22px; width: 60px;">
+                        <img src="{{ asset('build/images/master_logo.png') }}" alt="Mastercard"
+                            style="height: 35px; width: 60px;">
                     </div>
 
                     <div class="text-center mt-4">
@@ -90,15 +104,11 @@
         </div>
     </section>
 
-    <footer>
-        <p>© 2025 Math Academy</p>
-    </footer>
-
     <script>
-        (function () {
+        (function() {
             'use strict';
             const form = document.getElementById('paymentForm');
-            form.addEventListener('submit', function (event) {
+            form.addEventListener('submit', function(event) {
                 event.preventDefault();
                 event.stopPropagation();
 
@@ -113,16 +123,12 @@
                 form.classList.remove('was-validated');
             });
         })();
-        document.getElementById("numInput").addEventListener("input", function () {
+        document.getElementById("numInput").addEventListener("input", function() {
             if (this.value.length > 4) {
                 this.value = this.value.slice(0, 4);
             }
         });
     </script>
-    @endsection
-    @section('footer')
-        <footer>
-            <p>© 2025 Math Academy</p>
-        </footer>
-        
-    @endsection
+@endsection
+@section('footer')
+@endsection

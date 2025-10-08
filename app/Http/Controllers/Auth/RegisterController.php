@@ -63,8 +63,8 @@ class RegisterController extends Controller
             return redirect()->back()->with('error', 'User registration failed. Please try again.');
         }
 
-        // Assign 'customer' role using Spatie
-        $user->assignRole('customer');
+        // Assign 'admin' role using Spatie
+        $user->assignRole('admin');
 
         return $user;
     }
@@ -74,7 +74,7 @@ class RegisterController extends Controller
      */
     protected function registered(Request $request, $user)
     {
-        if ($user->hasRole('customer')) {
+        if ($user->hasRole('admin')) {
             Auth::login($user);
             return redirect()->route('frontend.pages.home')->with('success', 'Registration successful!');
         }

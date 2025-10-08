@@ -18,13 +18,6 @@ class PermissionsTableSeeder extends Seeder
             'delete_users',
             'update_users_roles',
 
-            // Product Management
-            'view_products',
-            'create_product',
-            'add_product',
-            'edit_product',
-            'delete_product',
-
             // Profile
             'view_profile',
             'edit_profile',
@@ -41,32 +34,6 @@ class PermissionsTableSeeder extends Seeder
             'view_roles',
             'create_roles',
             'edit_roles',
-
-            // Category
-            'view_categories',
-            'add_categories',
-
-            // Pillars
-            'add_pillars',
-            'edit_pillars',
-            'delete_pillars',
-
-            // Sub Categories
-            'view_sub_categories',
-            'create_sub_categories',
-            'edit_sub_categories',
-            'update_sub_categories',
-            'delete_sub_categories',
-
-            // Appointments
-            'appointments',
-
-            // MetaTags
-            'view_metatags',
-            'create_metatag',
-            'edit_metatag',
-            'delete_metatag',
-            'view_metatag',
         ];
 
         foreach ($permissions as $permission) {

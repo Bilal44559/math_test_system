@@ -3,7 +3,7 @@
     Home - TM Math Academy
 @endsection
   @section('content')
-      
+
   <section class="text-center py-5 bg-light">
         <div class="container">
             <h1 class="fw-bold text-primary">Master Junior High Math with Confidence</h1>
@@ -92,7 +92,5 @@
     </section>
   @endsection
   @section('footer')
-       <footer>
-    <p>© 2025 Math Academy</p>
-  </footer>
+      
   @endsection

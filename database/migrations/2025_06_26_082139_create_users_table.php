@@ -17,14 +17,14 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('google_id')->nullable();
-            
+
             // Duplicate fields removed - only one email_verified_at needed
             $table->timestamp('email_verified_at')->nullable();
 
             $table->string('password');
 
-            // Role column with default 'customer'
-            $table->string('role')->default('customer');
+            // Role column with default 'admin'
+            $table->string('role')->default('admin');
 
             $table->rememberToken();
             $table->timestamps();

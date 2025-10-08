@@ -51,7 +51,7 @@
                         <i class="fas fa-calendar-check icon-green"></i>
                     </div>
                     <div class="card-body-custom">
-                        {{ $users ?? 0 }} {{-- Total Customers --}}
+                        {{ $users ?? 0 }}
                     </div>
                 </div>
             </div>

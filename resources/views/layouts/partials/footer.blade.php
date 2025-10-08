@@ -7,7 +7,7 @@
                     <script>
                         document.write(new Date().getFullYear())
                     </script>,
-                    <a href="{{ url('/') }}" class="font-weight-bold text-navy" target="_blank">Math Skills for School
+                    <a href="{{ route('home') }}" class="font-weight-bold text-navy" target="_blank">Math Skills for School
                         Success</a>
                 </div>
             </div>

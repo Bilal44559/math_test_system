@@ -11,20 +11,14 @@ class UserController extends Controller
 {
     public function index()
     {
-        // ✅ Fetch all users except 'customer'
-        $users = User::withoutRole('customer')->with('roles')->paginate(10);
+        // ✅ Fetch all users except 'admin'
+        // $users = User::withoutRole('admin')->with('roles')->paginate(10);
+        $users = User::paginate(10);
         $roles = Role::all();
 
         return view('admin.users.index', compact('users', 'roles'));
     }
 
-    public function customerindex()
-    {
-        // ✅ Fetch only users with 'customer' role
-        $customers = User::where('role', 'customer')->with('roles')->paginate(10);
-        $roles = Role::all();
-        return view('admin.users.customer', compact('customers', 'roles'));
-    }
 
     public function updateRole(Request $request)
     {
@@ -98,20 +92,5 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $user->delete();
         return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
-    }
-
-    public function CustomerToggleStatus($id)
-    {
-        $customer = User::findOrFail($id);
-        $customer->status = $customer->status ? 0 : 1;
-        $customer->save();
-        return response()->json(['success' => true]);
-    }
-
-    public function customerDestroy($id)
-    {
-        $customer = User::findOrFail($id);
-        $customer->delete();
-        return redirect()->route('admin.users.customers')->with('success', 'Customer deleted successfully.');
     }
 }

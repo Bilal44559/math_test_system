@@ -11,38 +11,11 @@
         </div>
         <div class="container-fluid pb-1 pt-4 px-3">
             <nav aria-label="breadcrumb " class="iv-breadcrumb">
-                <!-- <a class="text-white" href="#">
-                    <i class="ni ni-box-2"></i>
-                </a> -->
-                <!-- <h6 class="font-weight-bolder mb-0 text-white">
-                    @if (request()->routeIs('admin.products.index'))
-Products
-@elseif(request()->routeIs('admin.categories.index'))
-Categories
-@elseif(request()->routeIs('admin.sub_categories.index'))
-Sub Categories
-@elseif(request()->routeIs('admin.permissions.index'))
-Permissions
-@elseif(request()->routeIs('admin.roles.index'))
-Roles
-@elseif(request()->routeIs('admin.users.index'))
-Users
-@elseif(request()->routeIs('admin.profile.show'))
-Profile
-@elseif (request()->routeIs('admin.appointments.index'))
-Appointments
-@else
-Appointments
-@endif
-                </h6> -->
+
             </nav>
             <div class="sidenav-toggler sidenav-toggler-inner d-xl-block d-none ms-2">
                 <a href="javascript:;" class="nav-link p-0">
-                    <!-- <div class="sidenav-toggler-inner">
-                        <i class="sidenav-toggler-line bg-white"></i>
-                        <i class="sidenav-toggler-line bg-white"></i>
-                        <i class="sidenav-toggler-line bg-white"></i>
-                    </div> -->
+
                     <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none"
                         xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" clip-rule="evenodd"
@@ -55,34 +28,10 @@ Appointments
                 <div class="ms-md-auto pe-md-3 d-flex align-items-center">
                     <div class="position-relative">
 
-                        <!-- new notification bell  -->
-                        <div class="notification-icon" id="notificationIcon">
-                            <a href="javascript:void(0)" id="notificationToggle">
-                                <i class="fas fa-bell"></i>
-                                <span id="notification-count" class="num-count">
-
-                                </span>
-                            </a>
-                        </div>
-                        <div class="notification-container" id="notificationContainer">
-                            <h3>New Bookings</h3>
-                            <div id="notification-content">
-                                <div class="notification-item" data-appointment-id="undefined">
-                                    <p class="text-center text-muted">No Notifications</p>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <ul class="navbar-nav justify-content-end">
-                    <!-- <li class="nav-item d-flex align-items-center">
-                        <a href="{{ route('logout') }}"
-                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                            class=" text-white font-weight-bold px-0" target="_blank">
-                            <i class="fa fa-user me-sm-1"></i>
-                            <span class="d-sm-inline d-none">Sign Out</span>
-                        </a>
-                    </li> -->
+
                     <li class="nav-item d-flex align-items-center position-relative">
                         <a class="text-white font-weight-bold px-0" href="javascript:void(0)" id="userDropdown"
                             role="button">
@@ -113,7 +62,6 @@ Appointments
         @csrf
     </form>
     <meta name="app-base" content="{{ url('/') }}">
-    <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
     <script>
         $(document).ready(function() {
 
@@ -132,28 +80,6 @@ Appointments
                         $('#accountDropdownMenu').hide();
                     }
                 });
-            });
-
-            // Toggle notification box
-            $('#notificationToggle').on('click', function(e) {
-                e.stopPropagation();
-                $('#notificationContainer').toggle();
-                markAllAsRead();
-            });
-
-            // Hide notification box when clicking outside
-            $(document).on('click', function(event) {
-                if (!$(event.target).closest('#notificationContainer, #notificationToggle').length) {
-                    $('#notificationContainer').hide();
-                }
-            });
-
-
-            // Store scroll position when navigating to appointment
-            $('.appointment-row').on('click', function() {
-                sessionStorage.setItem('scrollPos', $(window).scrollTop());
-                const id = $(this).data('id');
-                window.location.href = `/admin/appointments/${id}`;
             });
 
         });
