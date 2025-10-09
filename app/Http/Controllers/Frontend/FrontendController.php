@@ -8,11 +8,14 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use App\Mail\EnrollmentCreatedMail;
 use App\Models\Enrollment;
+use App\Models\Transaction;
+use App\Models\PaymentSetting;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Crypt;
 use App\Models\User;
 use Stripe\Stripe;
+use Stripe\PaymentIntent;
 use Stripe\Checkout\Session as StripeSession;
 
 class FrontendController extends Controller
@@ -36,7 +39,11 @@ class FrontendController extends Controller
     }
     public function payment()
     {
-        return view('frontend.payment');
+        $paymentSetting = PaymentSetting::first();
+        if (!$paymentSetting) {
+            return redirect()->back()->with('error', 'Payment settings not found.');
+        }
+        return view('frontend.payment', compact('paymentSetting'));
     }
     public function refunds()
     {
@@ -51,111 +58,114 @@ class FrontendController extends Controller
         return view('frontend.terms');
     }
 
-   public function initiateEnrollmentPayment(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'full_name' => 'required|string|max:255',
-        'age_years' => 'nullable|numeric',
-        'age_months' => 'nullable|numeric',
-        'gender' => 'nullable|string|max:255',
-        'grade' => 'nullable|string|max:255',
-        'guardian_name' => 'nullable|string|max:255',
-        'email' => 'required|email|max:255',
-        'phone' => 'nullable|string|max:255',
-        'postal_code' => 'nullable|string|max:255',
-        'address' => 'nullable|string|max:255',
-    ]);
+    public function initiateEnrollmentPayment(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'full_name' => 'required|string|max:255',
+            'age_years' => 'nullable|numeric|min:1',
+            'age_months' => 'nullable|numeric|min:1|max:12',
+            'gender' => 'required|string|max:255',
+            'grade' => 'required|string|max:255',
+            'guardian_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:255',
+            'postal_code' => 'nullable|string|max:255',
+            'address' => 'required|string|max:255',
+        ]);
 
-    if ($validator->fails()) {
-        return redirect()->back()->withErrors($validator)->withInput();
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $data = $validator->validated();
+        session(['enrollment_data' => $data]);
+        return redirect()->route('payment');
     }
 
-    $data = $validator->validated();
+    public function processPayment(Request $request)
+    {
+        $total = floatval($request->total ?? 0);
+        if (!session()->has('enrollment_data')) {
+            return redirect()->route('frontend.enroll')->with('error', 'Session expired. Please try again.');
+        }
 
-    // Store enrollment data in session temporarily
-    session(['enrollment_data' => $data]);
+        $data = session('enrollment_data');
+        Stripe::setApiKey(env('STRIPE_SECRET'));
 
-    // Create Stripe Checkout session
-    Stripe::setApiKey(env('STRIPE_SECRET'));
-
-    $checkoutSession = StripeSession::create([
-        'payment_method_types' => ['card'],
-        'line_items' => [[
-            'price_data' => [
+        try {
+            $paymentIntent = PaymentIntent::create([
+                'amount' => intval($total * 100),
                 'currency' => 'cad',
-                'unit_amount' => 32500, // CA$325 = 32500 cents
-                'product_data' => [
-                    'name' => 'Enrollment Payment - TM Math Academy',
+                'payment_method' => $request->payment_method_id,
+                'confirm' => true,
+                'automatic_payment_methods' => [
+                    'enabled' => true,
+                    'allow_redirects' => 'never',
                 ],
-            ],
-            'quantity' => 1,
-        ]],
-        'mode' => 'payment',
-        'customer_email' => $data['email'],
-        'success_url' => route('enroll.payment.success') . '?session_id={CHECKOUT_SESSION_ID}',
-        'cancel_url' => route('enroll.payment.cancel'),
-    ]);
+                'description' => 'Enrollment Payment - TM Math Academy',
+                'receipt_email' => $data['email'],
+            ]);
 
-    return redirect($checkoutSession->url);
-}
+            if ($paymentIntent->status === 'requires_action' &&
+                $paymentIntent->next_action->type === 'use_stripe_sdk') {
+                return response()->json([
+                    'requires_action' => true,
+                    'payment_intent_client_secret' => $paymentIntent->client_secret,
+                ]);
+            } elseif ($paymentIntent->status === 'succeeded') {
+                $rawPassword = Str::random(10);
+                $user = User::where('email', $data['email'])->first();
+                if ($user) {
+                    $user->update([
+                        'name' => $data['full_name'],
+                        'password' => Hash::make($rawPassword),
+                        'status' => 1,
+                    ]);
+                } else {
+                    $user = User::create([
+                        'email' => $data['email'],
+                        'name' => $data['full_name'],
+                        'password' => Hash::make($rawPassword),
+                        'status' => 1,
+                    ]);
+                }
+                $enrollment = Enrollment::create(array_merge($data, [
+                    'user_id' => $user->id,
+                ]));
 
-public function handlePaymentSuccess(Request $request)
-{
-    $sessionId = $request->get('session_id');
-    if (!$sessionId || !session()->has('enrollment_data')) {
-        return redirect()->route('frontend.enroll')->with('error', 'Invalid session.');
+                Transaction::create([
+                    'enrollment_id' => $enrollment->id,
+                    'stripe_payment_id' => $paymentIntent->id,
+                    'stripe_payment_method' => $paymentIntent->payment_method,
+                    'amount' => $paymentIntent->amount,
+                    'currency' => $paymentIntent->currency,
+                    'status' => $paymentIntent->status,
+                    'description' => $paymentIntent->description,
+                    'receipt_email' => $paymentIntent->receipt_email,
+                    'stripe_response' => $paymentIntent->toArray(),
+                ]);
+
+                $payload = json_encode([
+                    'email' => $user->email,
+                    'password' => $rawPassword,
+                    'enrollment_id' => $enrollment->id,
+                ]);
+
+                $token = Crypt::encryptString($payload);
+                $link = route('enroll.test-start', ['token' => $token]);
+
+                Mail::to($user->email)->send(new EnrollmentCreatedMail($user->email, $rawPassword, $link, $enrollment));
+
+                session()->forget('enrollment_data');
+
+                return redirect()->route('enroll')->with('success', 'Payment successful! Enrollment completed.');
+            }
+
+            return back()->with('error', 'Payment could not be completed.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
-
-    Stripe::setApiKey(env('STRIPE_SECRET'));
-    $session = \Stripe\Checkout\Session::retrieve($sessionId);
-
-    if (!$session || $session->payment_status !== 'paid') {
-        return redirect()->route('frontend.enroll')->with('error', 'Payment not successful.');
-    }
-
-    $data = session('enrollment_data');
-
-    // Clean postal code
-    if (!empty($data['postal_code'])) {
-        $data['postal_code'] = strtoupper(str_replace(' ', '', $data['postal_code']));
-    }
-
-    // Create user
-    $rawPassword = Str::random(10);
-    $hashedPassword = Hash::make($rawPassword);
-
-    $user = User::firstOrCreate(
-        ['email' => $data['email']],
-        [
-            'name' => $data['full_name'],
-            'password' => $hashedPassword,
-        ]
-    );
-
-    // Save enrollment
-    $enrollment = Enrollment::create(array_merge($data, [
-        'user_id' => $user->id,
-    ]));
-
-    // Generate token for test link
-    $payload = json_encode([
-        'email' => $user->email,
-        'password' => $rawPassword,
-        'enrollment_id' => $enrollment->id,
-    ]);
-
-    $token = Crypt::encryptString($payload);
-    $link = route('enroll.test-start', ['token' => $token]);
-
-    // Send email
-    Mail::to($user->email)->send(new EnrollmentCreatedMail($user->email, $rawPassword, $link, $enrollment));
-
-    // Clear session
-    session()->forget('enrollment_data');
-
-    return redirect()->route('enroll')->with('success', 'Enrollment successful. Check your email.');
-}
-
 
     public function testStart(Request $request, $token)
     {

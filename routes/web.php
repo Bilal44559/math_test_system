@@ -13,6 +13,7 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Admin\AdminPasswordController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\Admin\McqController;
 
 Route::get('/', [FrontendController::class, 'index'])->name('home');
 Route::get('/home', [FrontendController::class, 'index'])->name('home');
@@ -20,10 +21,13 @@ Route::get('/about', [FrontendController::class, 'about'])->name('about');
 Route::get('/eligibility', [FrontendController::class, 'eligibility'])->name('eligibility');
 Route::get('/enroll', [FrontendController::class, 'enroll'])->name('enroll');
 Route::get('/payment', [FrontendController::class, 'payment'])->name('payment');
+Route::post('/payment/process', [FrontendController::class, 'processPayment'])->name('payment.process');
 Route::get('/refunds', [FrontendController::class, 'refunds'])->name('refunds');
 Route::get('/syllabus', [FrontendController::class, 'syllabus'])->name('syllabus');
 Route::get('/terms', [FrontendController::class, 'terms'])->name('terms');
-
+Route::post('/enroll/start-payment', [FrontendController::class, 'initiateEnrollmentPayment'])->name('enroll.payment.start');
+Route::get('/enroll/test-start/{token}', [EnrollmentController::class, 'testStart'])
+    ->name('enroll.test-start');
 
 Auth::routes();
 
@@ -75,6 +79,7 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
         Route::get('/roles/{id}/permissions', [RoleController::class, 'assignPermissions'])->name('admin.roles.permissions');
 
         Route::post('/roles/{id}/permissions', [RoleController::class, 'updatePermissions'])->name('admin.roles.updatePermissions');
+
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
@@ -88,14 +93,20 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     // Route::get('enroll-settings', [TransactionController::class, 'index'])->name('admin.enroll-settings.index');
 
     // Route::get('enroll-settings/show', [TransactionController::class, 'show'])->name('admin.enroll-settings.show');
+
+    // MCQs
+    Route::get('/mcqs', [McqController::class, 'index'])->name('admin.mcqs.index');
+    Route::get('/mcqs/create', [McqController::class, 'create'])->name('admin.mcqs.create');
+    Route::post('/mcqs', [McqController::class, 'store'])->name('admin.mcqs.store');
+    Route::get('/mcqs/{id}', [McqController::class, 'show'])->name('admin.mcqs.show');
+    Route::get('/mcqs/{id}/edit', [McqController::class, 'edit'])->name('admin.mcqs.edit');
+    Route::put('/mcqs/{id}', [McqController::class, 'update'])->name('admin.mcqs.update');
+    Route::delete('/mcqs/{id}', [McqController::class, 'destroy'])->name('admin.mcqs.destroy');
+    Route::post('/mcqs/{id}/toggle', [McqController::class, 'toggleStatus'])->name('admin.mcqs.toggle');
 });
 
 
-Route::post('/enroll/start-payment', [FrontendController::class, 'initiateEnrollmentPayment'])->name('enroll.payment.start');
-Route::get('/enroll/payment-success', [FrontendController::class, 'handlePaymentSuccess'])->name('enroll.payment.success');
-Route::get('/enroll/payment-cancel', function () {
-    return redirect()->route('frontend.enroll')->with('error', 'Payment was cancelled.');
-})->name('enroll.payment.cancel');
+
 
 Route::get('/change-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('auth.change-password');
 

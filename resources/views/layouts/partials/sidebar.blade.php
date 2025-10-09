@@ -59,6 +59,16 @@
                 </a>
             </li>
 
+            <li class="nav-item">
+                <a class="nav-link @if (request()->routeIs('admin.mcqs.*')) active @endif"
+                    href="{{ route('admin.mcqs.index') }}">
+                    <div class="icon icon-shape icon-sm text-center d-flex align-items-center justify-content-center">
+                        <i class="fa-solid fa-question text-black text-sm"></i>
+                    </div>
+                    <span class="sidenav-normal nav-link-text text-black">MCQs<b class="caret"></b></span>
+                </a>
+            </li>
+
             {{-- <li class="nav-item">
                 <a class="nav-link @if (request()->routeIs('admin.enrollment.form.*')) active @endif"
                     href="{{ route('admin.enrollment.index') }}">

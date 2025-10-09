@@ -10,9 +10,9 @@ class CreateEnrollmentsTable extends Migration
     {
         Schema::create('enrollments', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id')->nullable()->after('id');
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->string('full_name')->nullable();
-            $table->unsignedTinyInteger('age_years')->nullable();
+            $table->integer('age_years')->nullable();
             $table->unsignedTinyInteger('age_months')->nullable();
             $table->string('gender')->nullable();
             $table->string('grade')->nullable();

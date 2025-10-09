@@ -8,6 +8,7 @@
               <h2 class="fw-bold text-primary">Enroll Now</h2>
               <p class="text-secondary">Please fill out the form below to reserve your spot at TM Math Academy.</p>
           </div>
+          <x-alert />
 
           <div class="d-flex justify-content-center">
               <div class="card shadow-sm border-0 rounded-4 p-4 p-md-5" style="max-width: 800px; width: 100%;">
@@ -23,9 +24,6 @@
                                   class="form-control rounded-pill @error('full_name') is-invalid @enderror"
                                   placeholder="Enter child's full name" value="{{ old('full_name') }}" required>
                               <div class="invalid-feedback">Please enter full name.</div>
-                              @error('full_name')
-                                  <div class="text-danger small">{{ $message }}</div>
-                              @enderror
                           </div>
 
                           {{-- Age Years --}}
@@ -35,9 +33,6 @@
                                   class="form-control rounded-pill @error('age_years') is-invalid @enderror"
                                   placeholder="Years" value="{{ old('age_years') }}">
                               <div class="invalid-feedback">Please enter valid years.</div>
-                              @error('age_years')
-                                  <div class="text-danger small">{{ $message }}</div>
-                              @enderror
                           </div>
 
                           {{-- Age Months --}}
@@ -47,9 +42,6 @@
                                   class="form-control rounded-pill @error('age_months') is-invalid @enderror"
                                   placeholder="Months" value="{{ old('age_months') }}">
                               <div class="invalid-feedback">Please enter valid months.</div>
-                              @error('age_months')
-                                  <div class="text-danger small">{{ $message }}</div>
-                              @enderror
                           </div>
 
                           {{-- Gender --}}
@@ -66,9 +58,6 @@
                                   </option>
                               </select>
                               <div class="invalid-feedback">Please select gender.</div>
-                              @error('gender')
-                                  <div class="text-danger small">{{ $message }}</div>
-                              @enderror
                           </div>
 
                           {{-- Grade --}}
@@ -78,9 +67,6 @@
                                   class="form-control rounded-pill @error('grade') is-invalid @enderror"
                                   placeholder="Enter current grade" value="{{ old('grade') }}">
                               <div class="invalid-feedback">Please enter grade.</div>
-                              @error('grade')
-                                  <div class="text-danger small">{{ $message }}</div>
-                              @enderror
                           </div>
 
                           {{-- Guardian Name --}}
@@ -90,9 +76,6 @@
                                   class="form-control rounded-pill @error('guardian_name') is-invalid @enderror"
                                   placeholder="Enter parent or guardian name" value="{{ old('guardian_name') }}">
                               <div class="invalid-feedback">Please enter guardian name.</div>
-                              @error('guardian_name')
-                                  <div class="text-danger small">{{ $message }}</div>
-                              @enderror
                           </div>
 
                           {{-- Email --}}
@@ -102,9 +85,6 @@
                                   class="form-control rounded-pill @error('email') is-invalid @enderror"
                                   placeholder="Enter email address" value="{{ old('email') }}" required>
                               <div class="invalid-feedback">Please enter a valid email.</div>
-                              @error('email')
-                                  <div class="text-danger small">{{ $message }}</div>
-                              @enderror
                           </div>
 
                           {{-- Phone --}}
@@ -114,9 +94,6 @@
                                   class="form-control rounded-pill @error('phone') is-invalid @enderror"
                                   placeholder="Enter phone number" value="{{ old('phone') }}">
                               <div class="invalid-feedback">Please enter a valid phone number.</div>
-                              @error('phone')
-                                  <div class="text-danger small">{{ $message }}</div>
-                              @enderror
                           </div>
 
                           {{-- Postal Code (6 boxes merged into one input) --}}
@@ -136,9 +113,6 @@
                               <textarea name="address" class="form-control rounded-4 @error('address') is-invalid @enderror" rows="3"
                                   placeholder="e.g. 12345 99 Ave NW">{{ old('address') }}</textarea>
                               <div class="invalid-feedback">Please enter address.</div>
-                              @error('address')
-                                  <div class="text-danger small">{{ $message }}</div>
-                              @enderror
                           </div>
 
                           {{-- Submit --}}
