@@ -10,13 +10,16 @@ use App\Mail\EnrollmentCreatedMail;
 use App\Models\Enrollment;
 use App\Models\Transaction;
 use App\Models\PaymentSetting;
+use App\Models\EnrollmentToken;
+use App\Models\Mcq;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use App\Models\User;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
-use Stripe\Checkout\Session as StripeSession;
+use Carbon\Carbon;
 
 class FrontendController extends Controller
 {
@@ -127,6 +130,7 @@ class FrontendController extends Controller
                         'name' => $data['full_name'],
                         'password' => Hash::make($rawPassword),
                         'status' => 1,
+                        'role' => 'student',
                     ]);
                 }
                 $enrollment = Enrollment::create(array_merge($data, [
@@ -154,6 +158,13 @@ class FrontendController extends Controller
                 $token = Crypt::encryptString($payload);
                 $link = route('enroll.test-start', ['token' => $token]);
 
+                EnrollmentToken::create([
+                    'enrollment_id' => $enrollment->id,
+                    'token' => $token,
+                    'expires_at' => now()->addHours(3),
+                ]);
+
+
                 Mail::to($user->email)->send(new EnrollmentCreatedMail($user->email, $rawPassword, $link, $enrollment));
 
                 session()->forget('enrollment_data');
@@ -169,18 +180,114 @@ class FrontendController extends Controller
 
     public function testStart(Request $request, $token)
     {
-        try {
-            $decrypted = Crypt::decryptString($token);
-            $data = json_decode($decrypted, true);
+        $tokenData = EnrollmentToken::where('token', $token)->first();
 
-            return view('enrollments.activation', [
-                'email' => $data['email'] ?? null,
-                'password' => $data['password'] ?? null,
-                'enrollment_id' => $data['enrollment_id'] ?? null,
-            ]);
-        } catch (\Throwable $e) {
+        if (!$tokenData || $tokenData->used || Carbon::parse($tokenData->expires_at)->isPast()) {
             abort(400, 'Invalid or expired token.');
         }
+
+        $decrypted = Crypt::decryptString($token);
+        $data = json_decode($decrypted, true);
+
+        $tokenData->update(['used' => true]);
+
+        return redirect()->route('student.login')->with([
+            'email' => $data['email'],
+            'password' => $data['password']
+        ]);
     }
 
+    public function studentLoginPage()
+    {
+        return view('student.login');
+    }
+
+    public function studentLogin(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        $credentials = $request->only('email', 'password');
+
+        if (Auth::attempt($credentials)) {
+            session(['level' => 1]);
+            return redirect()->route('attempt.index')->with('success', 'Welcome! Your test is ready.');
+        }
+        return back()->withErrors(['email' => 'Invalid credentials.'])->withInput();
+    }
+
+    public function questions(Request $request)
+    {
+        $level = session('level', 1);
+        $user = Auth::user();
+
+        // Determine question range based on level
+        $start = ($level - 1) * 15 + 1;
+        $end = $level * 15;
+
+        $questions = Mcq::whereBetween('id', [$start, $end])
+            ->where('status', 1)
+            ->with('options')
+            ->get();
+
+        if ($questions->isEmpty()) {
+            return view('student.test-finish', ['message' => 'No questions found.']);
+        }
+
+        return view('student.attempt', compact('questions', 'level'));
+    }
+
+    public function submit(Request $request)
+    {
+        $user = Auth::user();
+        $level = session('level', 1);
+
+        $answers = $request->input('answers', []);
+        $correctCount = 0;
+
+        // Create attempt record
+        $attempt = Attempt::create([
+            'user_id' => $user->id,
+            'level' => $level,
+            'total_questions' => count($answers),
+        ]);
+
+        foreach ($answers as $mcqId => $optionId) {
+            $option = \App\Models\Option::find($optionId);
+            $isCorrect = $option && $option->is_correct == 1;
+
+            if ($isCorrect) {
+                $correctCount++;
+            }
+
+            Answer::create([
+                'attempt_id' => $attempt->id,
+                'mcq_id' => $mcqId,
+                'selected_option_id' => $optionId,
+                'is_correct' => $isCorrect,
+            ]);
+        }
+
+        $attempt->update([
+            'correct_count' => $correctCount,
+            'status' => $correctCount >= 9 ? 'passed' : 'failed',
+        ]);
+
+        // Level logic
+        if ($correctCount >= 9) {
+            if ($level < 3) {
+                session(['level' => $level + 1]);
+                return redirect()->route('attempt.index')
+                    ->with('success', 'Good job! Continue to the next set of questions.');
+            } else {
+                session()->forget('level');
+                return view('student.congratulations', ['correctCount' => $correctCount]);
+            }
+        } else {
+            session()->forget('level');
+            return view('student.test-finish', ['message' => 'You did not clear this level. Check your email for feedback.']);
+        }
+    }
 }

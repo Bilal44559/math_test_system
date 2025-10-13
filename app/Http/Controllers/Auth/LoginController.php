@@ -31,6 +31,8 @@ class LoginController extends Controller
     {
         if (Auth::user()->hasRole('admin')) {
             return route('admin.dashboard');
+        } elseif(Auth::user()->hasRole('student')) {
+            return route('student.quiz');
         } else {
             return route('admin.slot-bookings.index');
         }

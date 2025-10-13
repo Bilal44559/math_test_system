@@ -26,8 +26,15 @@ Route::get('/refunds', [FrontendController::class, 'refunds'])->name('refunds');
 Route::get('/syllabus', [FrontendController::class, 'syllabus'])->name('syllabus');
 Route::get('/terms', [FrontendController::class, 'terms'])->name('terms');
 Route::post('/enroll/start-payment', [FrontendController::class, 'initiateEnrollmentPayment'])->name('enroll.payment.start');
-Route::get('/enroll/test-start/{token}', [EnrollmentController::class, 'testStart'])
+Route::get('/enroll/test-start/{token}', [FrontendController::class, 'testStart'])
     ->name('enroll.test-start');
+Route::get('/student/login', [FrontendController::class, 'studentLoginPage'])->name('student.login');
+Route::post('/student/login', [FrontendController::class, 'studentLogin'])->name('student.submit-login');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/attempt', [FrontendController::class, 'questions'])->name('attempt.index');
+    Route::post('/attempt/submit', [FrontendController::class, 'submit'])->name('attempt.submit');
+});
 
 Auth::routes();
 
