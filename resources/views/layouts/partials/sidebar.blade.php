@@ -13,7 +13,7 @@
             </li>
 
 
-            @can('view_permissions')
+            {{-- @can('view_permissions')
                 <li class="nav-item">
                     <a class="nav-link @if (request()->routeIs('admin.permissions.*')) active @endif"
                         href="{{ route('admin.permissions.index') }}">
@@ -48,7 +48,8 @@
                         <span class="sidenav-normal nav-link-text text-black"> Users <b class="caret"></b></span>
                     </a>
                 </li>
-            @endcan
+            @endcan --}}
+
             <li class="nav-item">
                 <a class="nav-link @if (request()->routeIs('admin.payment-settings.*')) active @endif"
                     href="{{ route('admin.payment-settings.index') }}">
@@ -66,6 +67,16 @@
                         <i class="fa-solid fa-question text-black text-sm"></i>
                     </div>
                     <span class="sidenav-normal nav-link-text text-black">MCQs<b class="caret"></b></span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link @if (request()->routeIs('admin.attempt-questions.*')) active @endif"
+                    href="{{ route('admin.attempt-questions') }}">
+                    <div class="icon icon-shape icon-sm text-center d-flex align-items-center justify-content-center">
+                        <i class="fa-solid fa-book text-black text-sm"></i>
+                    </div>
+                    <span class="sidenav-normal nav-link-text text-black">Attempt Questions<b class="caret"></b></span>
                 </a>
             </li>
 

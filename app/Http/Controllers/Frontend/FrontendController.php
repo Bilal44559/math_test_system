@@ -20,6 +20,10 @@ use App\Models\User;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
 use Carbon\Carbon;
+use App\Models\Attempt;
+use App\Models\Answer;
+use App\Models\Option;
+use App\Mail\TestResultMail;
 
 class FrontendController extends Controller
 {
@@ -61,12 +65,17 @@ class FrontendController extends Controller
         return view('frontend.terms');
     }
 
+    public function thanks()
+    {
+        return view('frontend.thanks');
+    }
+
     public function initiateEnrollmentPayment(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
-            'age_years' => 'nullable|numeric|min:1',
-            'age_months' => 'nullable|numeric|min:1|max:12',
+            'age_years' => 'required|numeric|min:1',
+            'age_months' => 'required|numeric|min:1|max:12',
             'gender' => 'required|string|max:255',
             'grade' => 'required|string|max:255',
             'guardian_name' => 'required|string|max:255',
@@ -89,10 +98,14 @@ class FrontendController extends Controller
     {
         $total = floatval($request->total ?? 0);
         if (!session()->has('enrollment_data')) {
-            return redirect()->route('frontend.enroll')->with('error', 'Session expired. Please try again.');
+            return redirect()->route('enroll')->with('error', 'Session expired. Please try again.');
         }
 
         $data = session('enrollment_data');
+        $existingEnrollment = Enrollment::where('email', $data['email'])->first();
+        if ($existingEnrollment) {
+            return redirect()->route('enroll')->with('error', 'An enrollment already exists for this email.');
+        }
         Stripe::setApiKey(env('STRIPE_SECRET'));
 
         try {
@@ -118,13 +131,7 @@ class FrontendController extends Controller
             } elseif ($paymentIntent->status === 'succeeded') {
                 $rawPassword = Str::random(10);
                 $user = User::where('email', $data['email'])->first();
-                if ($user) {
-                    $user->update([
-                        'name' => $data['full_name'],
-                        'password' => Hash::make($rawPassword),
-                        'status' => 1,
-                    ]);
-                } else {
+                if (!$user) {
                     $user = User::create([
                         'email' => $data['email'],
                         'name' => $data['full_name'],
@@ -169,7 +176,7 @@ class FrontendController extends Controller
 
                 session()->forget('enrollment_data');
 
-                return redirect()->route('enroll')->with('success', 'Payment successful! Enrollment completed.');
+                return redirect()->route('thanks');
             }
 
             return back()->with('error', 'Payment could not be completed.');
@@ -181,20 +188,33 @@ class FrontendController extends Controller
     public function testStart(Request $request, $token)
     {
         $tokenData = EnrollmentToken::where('token', $token)->first();
-
-        if (!$tokenData || $tokenData->used || Carbon::parse($tokenData->expires_at)->isPast()) {
-            abort(400, 'Invalid or expired token.');
+        if (!$tokenData) {
+            return view('frontend.token-expired')->with('message', 'Invalid token.');
+        }
+        if ($tokenData->used) {
+            return view('frontend.token-expired')->with('message', 'This token has already been used. Please enroll again.');
+        }
+        if (Carbon::parse($tokenData->expires_at)->isPast()) {
+            return view('frontend.token-expired')->with('message', 'Your token has expired. Please create a new enrollment.');
         }
 
-        $decrypted = Crypt::decryptString($token);
-        $data = json_decode($decrypted, true);
+        try {
+            $decrypted = Crypt::decryptString($token);
+            $data = json_decode($decrypted, true);
+            session([
+                'token_enrollment_id' => $tokenData->enrollment_id,
+                'token_value' => $token,
+                'student_email' => $data['email'],
+                'student_password' => $data['password']
+            ]);
 
-        $tokenData->update(['used' => true]);
-
-        return redirect()->route('student.login')->with([
-            'email' => $data['email'],
-            'password' => $data['password']
-        ]);
+            return redirect()->route('student.login')->with([
+                'email' => $data['email'],
+                'password' => $data['password']
+            ]);
+        } catch (\Exception $e) {
+            return view('frontend.token-expired')->with('message', 'Invalid or tampered token.');
+        }
     }
 
     public function studentLoginPage()
@@ -212,23 +232,58 @@ class FrontendController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+            $alreadyAttempted = Attempt::where('user_id', $user->id)->exists();
+
+            if (session()->has('token_value')) {
+                EnrollmentToken::where('token', session('token_value'))->update([
+                    'used' => true,
+                    'used_at' => now(),
+                ]);
+                session()->forget(['token_value', 'token_enrollment_id']);
+            }
+
+            if ($alreadyAttempted) {
+                Auth::logout();
+                return redirect()->route('test.already')
+                    ->with('error', 'You have already attempted the test.');
+            }
+
             session(['level' => 1]);
-            return redirect()->route('attempt.index')->with('success', 'Welcome! Your test is ready.');
+            return redirect()->route('attempt.index')
+                ->with('success', 'Welcome! Your test is ready.');
         }
+
         return back()->withErrors(['email' => 'Invalid credentials.'])->withInput();
+    }
+
+    public function alreadyAttempted(){
+        return view('student.already-attempted');
     }
 
     public function questions(Request $request)
     {
-        $level = session('level', 1);
         $user = Auth::user();
 
-        // Determine question range based on level
-        $start = ($level - 1) * 15 + 1;
-        $end = $level * 15;
+        $completedAllLevels = Attempt::where('user_id', $user->id)
+            ->where('status', 'passed')
+            ->count() >= 3;
 
-        $questions = Mcq::whereBetween('id', [$start, $end])
-            ->where('status', 1)
+        if ($completedAllLevels) {
+            Auth::logout();
+            return redirect()->route('test.already')
+                ->with('error', 'You have already completed all test levels.');
+        }
+
+        // Each level = 15 questions
+        $level = session('level', 1);
+        $limit = 15;
+        $offset = ($level - 1) * $limit;
+
+        $questions = Mcq::where('status', 1)
+            ->orderBy('id', 'asc')
+            ->skip($offset)
+            ->take($limit)
             ->with('options')
             ->get();
 
@@ -239,7 +294,8 @@ class FrontendController extends Controller
         return view('student.attempt', compact('questions', 'level'));
     }
 
-    public function submit(Request $request)
+
+    public function submitQuestions(Request $request)
     {
         $user = Auth::user();
         $level = session('level', 1);
@@ -247,7 +303,6 @@ class FrontendController extends Controller
         $answers = $request->input('answers', []);
         $correctCount = 0;
 
-        // Create attempt record
         $attempt = Attempt::create([
             'user_id' => $user->id,
             'level' => $level,
@@ -255,7 +310,7 @@ class FrontendController extends Controller
         ]);
 
         foreach ($answers as $mcqId => $optionId) {
-            $option = \App\Models\Option::find($optionId);
+            $option = Option::find($optionId);
             $isCorrect = $option && $option->is_correct == 1;
 
             if ($isCorrect) {
@@ -272,22 +327,29 @@ class FrontendController extends Controller
 
         $attempt->update([
             'correct_count' => $correctCount,
+            'incorrect_count' => count($answers) - $correctCount,
             'status' => $correctCount >= 9 ? 'passed' : 'failed',
         ]);
 
-        // Level logic
+        Mail::to($user->email)->send(new TestResultMail($user, $attempt));
+
         if ($correctCount >= 9) {
             if ($level < 3) {
                 session(['level' => $level + 1]);
                 return redirect()->route('attempt.index')
-                    ->with('success', 'Good job! Continue to the next set of questions.');
+                    ->with('success', 'Good job! Continue to the next questions.');
             } else {
                 session()->forget('level');
-                return view('student.congratulations', ['correctCount' => $correctCount]);
+                return view('student.congratulations', [
+                    'correctCount' => $correctCount,
+                    'total' => count($answers)
+                ]);
             }
         } else {
             session()->forget('level');
-            return view('student.test-finish', ['message' => 'You did not clear this level. Check your email for feedback.']);
+            return view('student.test-finish', [
+                'message' => 'You did not clear this level. Check your email for feedback.'
+            ]);
         }
     }
 }

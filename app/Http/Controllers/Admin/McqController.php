@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\Mcq;
 use App\Models\Option;
+use App\Models\Attempt;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
@@ -90,5 +91,12 @@ public function toggleStatus($id)
     $mcq->save();
 
     return response()->json(['success' => true, 'status' => $mcq->status]);
+}
+
+public function attemptQuestionShow()
+{
+    $attempts = Attempt::with('user')->get();
+    return view('admin.attempt-questions.index', compact('attempts'));
+
 }
 }

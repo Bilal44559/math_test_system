@@ -19,7 +19,7 @@
 
                           {{-- Full Name --}}
                           <div class="col-md-6">
-                              <label class="form-label fw-semibold text-secondary">Full Name</label>
+                              <label class="form-label fw-semibold text-secondary">Full Name <span class="text-danger">*</span></label>
                               <input type="text" name="full_name"
                                   class="form-control rounded-pill @error('full_name') is-invalid @enderror"
                                   placeholder="Enter child's full name" value="{{ old('full_name') }}" required>
@@ -28,7 +28,7 @@
 
                           {{-- Age Years --}}
                           <div class="col-md-3">
-                              <label class="form-label fw-semibold text-secondary">Age (Years)</label>
+                              <label class="form-label fw-semibold text-secondary">Age (Years) <span class="text-danger">*</span></label>
                               <input type="number" name="age_years"
                                   class="form-control rounded-pill @error('age_years') is-invalid @enderror"
                                   placeholder="Years" value="{{ old('age_years') }}">
@@ -37,7 +37,7 @@
 
                           {{-- Age Months --}}
                           <div class="col-md-3">
-                              <label class="form-label fw-semibold text-secondary">Age (Months)</label>
+                              <label class="form-label fw-semibold text-secondary">Age (Months) <span class="text-danger">*</span></label>
                               <input type="number" name="age_months"
                                   class="form-control rounded-pill @error('age_months') is-invalid @enderror"
                                   placeholder="Months" value="{{ old('age_months') }}">
@@ -46,7 +46,7 @@
 
                           {{-- Gender --}}
                           <div class="col-md-6">
-                              <label class="form-label fw-semibold text-secondary">Gender</label>
+                              <label class="form-label fw-semibold text-secondary">Gender <span class="text-danger">*</span></label>
                               <select name="gender" class="form-select rounded-pill @error('gender') is-invalid @enderror">
                                   <option value="">Select gender</option>
                                   <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male</option>
@@ -62,7 +62,7 @@
 
                           {{-- Grade --}}
                           <div class="col-md-6">
-                              <label class="form-label fw-semibold text-secondary">Grade</label>
+                              <label class="form-label fw-semibold text-secondary">Grade <span class="text-danger">*</span></label>
                               <input type="text" name="grade"
                                   class="form-control rounded-pill @error('grade') is-invalid @enderror"
                                   placeholder="Enter current grade" value="{{ old('grade') }}">
@@ -71,7 +71,7 @@
 
                           {{-- Guardian Name --}}
                           <div class="col-md-6">
-                              <label class="form-label fw-semibold text-secondary">Parent / Guardian Name</label>
+                              <label class="form-label fw-semibold text-secondary">Parent / Guardian Name <span class="text-danger">*</span></label>
                               <input type="text" name="guardian_name"
                                   class="form-control rounded-pill @error('guardian_name') is-invalid @enderror"
                                   placeholder="Enter parent or guardian name" value="{{ old('guardian_name') }}">
@@ -80,7 +80,7 @@
 
                           {{-- Email --}}
                           <div class="col-md-6">
-                              <label class="form-label fw-semibold text-secondary">Email</label>
+                              <label class="form-label fw-semibold text-secondary">Email <span class="text-danger">*</span></label>
                               <input type="email" name="email"
                                   class="form-control rounded-pill @error('email') is-invalid @enderror"
                                   placeholder="Enter email address" value="{{ old('email') }}" required>
@@ -89,7 +89,7 @@
 
                           {{-- Phone --}}
                           <div class="col-md-6">
-                              <label class="form-label fw-semibold text-secondary">Phone Number</label>
+                              <label class="form-label fw-semibold text-secondary">Phone Number <span class="text-danger">*</span></label>
                               <input type="tel" name="phone"
                                   class="form-control rounded-pill @error('phone') is-invalid @enderror"
                                   placeholder="Enter phone number" value="{{ old('phone') }}">
@@ -97,19 +97,21 @@
                           </div>
 
                           {{-- Postal Code (6 boxes merged into one input) --}}
-                          <div class="col-md-6">
-                              <label class="form-label fw-semibold text-secondary">Postal Code</label>
-                              <input type="text" name="postal_code" maxlength="6"
-                                  class="form-control rounded-pill @error('postal_code') is-invalid @enderror"
-                                  placeholder="Enter 6-character postal code" value="{{ old('postal_code') }}">
-                              @error('postal_code')
-                                  <div class="text-danger small">{{ $message }}</div>
-                              @enderror
-                          </div>
+                           <div class="col-md-6">
+                                <label class="form-label fw-semibold text-secondary">Post Code</label>
+                                <div class="d-flex gap-1 justify-content-between">
+                                    @for ($i = 0; $i < 6; $i++)
+                                        <input type="text" maxlength="1" name="postal_code[]"
+                                            class="form-control text-uppercase border rounded @error('postal_code') is-invalid @enderror post-code-input"
+                                            style="width: 52px; font-size: 15px;">
+                                    @endfor
+                                </div>
+                                <div id="postal-error" class="text-danger small mt-2 d-none">Invalid postal code format (e.g. E4C4P4)</div>
+                            </div>
 
                           {{-- Address --}}
                           <div class="col-12">
-                              <label class="form-label fw-semibold text-secondary">Street Address</label>
+                              <label class="form-label fw-semibold text-secondary">Street Address <span class="text-danger">*</span></label>
                               <textarea name="address" class="form-control rounded-4 @error('address') is-invalid @enderror" rows="3"
                                   placeholder="e.g. 12345 99 Ave NW">{{ old('address') }}</textarea>
                               <div class="invalid-feedback">Please enter address.</div>
@@ -182,6 +184,49 @@
               //   });
           });
       </script> --}}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const inputs = document.querySelectorAll(".post-code-input");
+            const errorDiv = document.getElementById("postal-error");
+
+            inputs.forEach((input, index) => {
+                input.addEventListener("input", function() {
+                    this.value = this.value.toUpperCase();
+
+                    const isLetter = /^[A-Z]$/.test(this.value);
+                    const isNumber = /^[0-9]$/.test(this.value);
+
+                    if ((index % 2 === 0 && !isLetter) || (index % 2 !== 0 && !isNumber)) {
+                        this.value = "";
+                        errorDiv.classList.remove("d-none");
+                    } else {
+                        errorDiv.classList.add("d-none");
+                        // Auto focus next input
+                        if (this.value && index < inputs.length - 1) {
+                            inputs[index + 1].focus();
+                        }
+                    }
+                });
+
+                input.addEventListener("keydown", function(e) {
+                    if (e.key === "Backspace" && !this.value && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                });
+            });
+
+            const form = document.getElementById("enrollForm");
+            form.addEventListener("submit", function() {
+                const postalCode = Array.from(inputs).map(i => i.value).join('');
+                const hidden = document.createElement("input");
+                hidden.type = "hidden";
+                hidden.name = "postal_code";
+                hidden.value = postalCode;
+                form.appendChild(hidden);
+            });
+        });
+    </script>
+
   @endsection
   @section('footer')
   @endsection

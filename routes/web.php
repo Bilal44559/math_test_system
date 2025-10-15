@@ -20,11 +20,12 @@ Route::get('/home', [FrontendController::class, 'index'])->name('home');
 Route::get('/about', [FrontendController::class, 'about'])->name('about');
 Route::get('/eligibility', [FrontendController::class, 'eligibility'])->name('eligibility');
 Route::get('/enroll', [FrontendController::class, 'enroll'])->name('enroll');
-Route::get('/payment', [FrontendController::class, 'payment'])->name('payment');
+Route::get('/payment', [FrontendController::class, 'payment'])->name('payment')->middleware('check.enrollment.session');
 Route::post('/payment/process', [FrontendController::class, 'processPayment'])->name('payment.process');
 Route::get('/refunds', [FrontendController::class, 'refunds'])->name('refunds');
 Route::get('/syllabus', [FrontendController::class, 'syllabus'])->name('syllabus');
 Route::get('/terms', [FrontendController::class, 'terms'])->name('terms');
+Route::get('/thanks', [FrontendController::class, 'thanks'])->name('thanks');
 Route::post('/enroll/start-payment', [FrontendController::class, 'initiateEnrollmentPayment'])->name('enroll.payment.start');
 Route::get('/enroll/test-start/{token}', [FrontendController::class, 'testStart'])
     ->name('enroll.test-start');
@@ -33,7 +34,8 @@ Route::post('/student/login', [FrontendController::class, 'studentLogin'])->name
 
 Route::middleware('auth')->group(function () {
     Route::get('/attempt', [FrontendController::class, 'questions'])->name('attempt.index');
-    Route::post('/attempt/submit', [FrontendController::class, 'submit'])->name('attempt.submit');
+    Route::get('/test-already', [FrontendController::class, 'alreadyAttempted'])->name('test.already');
+    Route::post('/attempt/submit', [FrontendController::class, 'submitQuestions'])->name('attempt.submit');
 });
 
 Auth::routes();
@@ -110,6 +112,7 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     Route::put('/mcqs/{id}', [McqController::class, 'update'])->name('admin.mcqs.update');
     Route::delete('/mcqs/{id}', [McqController::class, 'destroy'])->name('admin.mcqs.destroy');
     Route::post('/mcqs/{id}/toggle', [McqController::class, 'toggleStatus'])->name('admin.mcqs.toggle');
+    Route::get('/attempt-questions', [McqController::class, 'attemptQuestionShow'])->name('admin.attempt-questions');
 });
 
 
