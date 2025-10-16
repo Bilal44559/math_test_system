@@ -14,13 +14,16 @@ use App\Http\Controllers\Admin\AdminPasswordController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Admin\McqController;
+use App\Http\Middleware\CheckEnrollmentSession;
+
 
 Route::get('/', [FrontendController::class, 'index'])->name('home');
 Route::get('/home', [FrontendController::class, 'index'])->name('home');
 Route::get('/about', [FrontendController::class, 'about'])->name('about');
 Route::get('/eligibility', [FrontendController::class, 'eligibility'])->name('eligibility');
 Route::get('/enroll', [FrontendController::class, 'enroll'])->name('enroll');
-Route::get('/payment', [FrontendController::class, 'payment'])->name('payment')->middleware('check.enrollment.session');
+Route::get('/payment', [FrontendController::class, 'payment'])->name('payment')->middleware(CheckEnrollmentSession::class);
+
 Route::post('/payment/process', [FrontendController::class, 'processPayment'])->name('payment.process');
 Route::get('/refunds', [FrontendController::class, 'refunds'])->name('refunds');
 Route::get('/syllabus', [FrontendController::class, 'syllabus'])->name('syllabus');
@@ -50,6 +53,8 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
         Route::post('/users', [UserController::class, 'store'])->name('admin.users.store')->middleware('permission:create_user');
 
         Route::get('/users', [UserController::class, 'index'])->name('admin.users.index')->middleware('permission:users');
+
+        Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show');
 
         Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('admin.users.edit')->middleware('permission:edit_user');
 
@@ -88,7 +93,6 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
         Route::get('/roles/{id}/permissions', [RoleController::class, 'assignPermissions'])->name('admin.roles.permissions');
 
         Route::post('/roles/{id}/permissions', [RoleController::class, 'updatePermissions'])->name('admin.roles.updatePermissions');
-
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
