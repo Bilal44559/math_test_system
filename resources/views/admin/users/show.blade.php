@@ -42,6 +42,14 @@
                     <p class="text-sm mb-0">{{ $enroll->gender }}</p>
                     <h6>Student Grade</h6>
                     <p class="text-sm mb-0">{{ $enroll->grade }}</p>
+                    <h6>Province</h6>
+                    <p class="text-sm mb-0">{{ $enroll->province  }}</p>
+                    <h6>City </h6>
+                    <p class="text-sm mb-0">{{ $enroll->city  }}</p>
+                    <h6>Unit number</h6>
+                    <p class="text-sm mb-0">{{ $enroll->unit_number  }}</p>
+                    <h6>EOD</h6>
+                    <p class="text-sm mb-0">{{ $enroll->created_at ? \Carbon\Carbon::parse($enroll->created_at)->format('d, M Y') : '-' }}</p>
                 </div>
             </div>
         </div>

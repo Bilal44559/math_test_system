@@ -56,6 +56,10 @@ class FrontendController extends Controller
     {
         return view('frontend.refunds');
     }
+        public function contact()
+    {
+        return view('frontend.contact');
+    }
     public function syllabus()
     {
         return view('frontend.syllabus');
@@ -75,14 +79,18 @@ class FrontendController extends Controller
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
             'age_years' => 'required|numeric|min:1',
-            'age_months' => 'required|numeric|min:1|max:12',
+            'age_months' => 'required|numeric|min:0|max:11',
             'gender' => 'required|string|max:255',
-            'grade' => 'required|string|max:255',
+            'grade' => 'nullable|string|max:255',
             'guardian_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:255',
             'postal_code' => 'nullable|string|max:255',
             'address' => 'required|string|max:255',
+            'guardians_email' => 'required|email|max:255',
+            'province' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'unit_number' => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -176,7 +184,7 @@ class FrontendController extends Controller
 
                 session()->forget('enrollment_data');
 
-                return redirect()->route('thanks');
+                return view('frontend.thanks', compact('link'));
             }
 
             return back()->with('error', 'Payment could not be completed.');
@@ -191,7 +199,7 @@ class FrontendController extends Controller
         if (!$tokenData) {
             return view('frontend.token-expired')->with('message', 'Invalid token.');
         }
-        if ($tokenData->used) {
+        if ($tokenData->used == 1) {
             return view('frontend.token-expired')->with('message', 'This token has already been used. Please enroll again.');
         }
         if (Carbon::parse($tokenData->expires_at)->isPast()) {
@@ -222,6 +230,12 @@ class FrontendController extends Controller
         return view('student.login');
     }
 
+    public function attemptPage()
+    {
+        $level = session('level', 1);
+        return view('student.attempt', compact('level'));
+    }
+
     public function studentLogin(Request $request)
     {
         $request->validate([
@@ -237,7 +251,7 @@ class FrontendController extends Controller
 
             if (session()->has('token_value')) {
                 EnrollmentToken::where('token', session('token_value'))->update([
-                    'used' => true,
+                    'used' => 1,
                     'used_at' => now(),
                 ]);
                 session()->forget(['token_value', 'token_enrollment_id']);
@@ -257,13 +271,32 @@ class FrontendController extends Controller
         return back()->withErrors(['email' => 'Invalid credentials.'])->withInput();
     }
 
-    public function alreadyAttempted(){
+    public function alreadyAttempted()
+    {
         return view('student.already-attempted');
+    }
+
+    public function testTimeout()
+    {
+        return view('student.test-timeout')->with('message', 'timeout detected. Your test session has ended.');
+    }
+
+    public function pageReload()
+    {
+        return view('student.reload')->with('message', 'Page reload detected. Your test session has ended.');
     }
 
     public function questions(Request $request)
     {
         $user = Auth::user();
+        if (session('attempt_started') === true && $request->session()->has('came_from')) {
+            return response()->json([
+                'page_reload' => true,
+                'message' => 'Page reload detected. Your test session has ended.'
+            ]);
+        }
+        session(['came_from' => true]);
+        session(['attempt_started' => true]);
 
         $completedAllLevels = Attempt::where('user_id', $user->id)
             ->where('status', 'passed')
@@ -271,8 +304,7 @@ class FrontendController extends Controller
 
         if ($completedAllLevels) {
             Auth::logout();
-            return redirect()->route('test.already')
-                ->with('error', 'You have already completed all test levels.');
+            return response()->json(['completed' => true]);
         }
 
         // Each level = 15 questions
@@ -288,12 +320,15 @@ class FrontendController extends Controller
             ->get();
 
         if ($questions->isEmpty()) {
-            return view('student.test-finish', ['message' => 'No questions found.']);
+            return response()->json(['message' => 'No questions found.']);
         }
 
-        return view('student.attempt', compact('questions', 'level'));
+        return response()->json([
+            'questions' => $questions,
+            'level' => $level,
+            'completed' => false
+        ]);
     }
-
 
     public function submitQuestions(Request $request)
     {
@@ -328,28 +363,37 @@ class FrontendController extends Controller
         $attempt->update([
             'correct_count' => $correctCount,
             'incorrect_count' => count($answers) - $correctCount,
-            'status' => $correctCount >= 9 ? 'passed' : 'failed',
+            'status' => $correctCount >= 10 ? 'passed' : 'failed',
         ]);
 
         Mail::to($user->email)->send(new TestResultMail($user, $attempt));
 
-        if ($correctCount >= 9) {
+        if ($correctCount >= 10) {
             if ($level < 3) {
                 session(['level' => $level + 1]);
-                return redirect()->route('attempt.index')
-                    ->with('success', 'Good job! Continue to the next questions.');
+                return response()->json([
+                    'success' => true,
+                    'next_level' => $level + 1,
+                    'message' => 'Good job! Moving to next level.',
+                ]);
             } else {
-                session()->forget('level');
-                return view('student.congratulations', [
-                    'correctCount' => $correctCount,
-                    'total' => count($answers)
+                session()->forget(['level', 'attempt_started', 'came_from']);
+                return response()->json([
+                    'completed' => true,
+                    'message' => 'Congratulations! You have completed all levels.',
                 ]);
             }
         } else {
-            session()->forget('level');
-            return view('student.test-finish', [
-                'message' => 'You did not clear this level. Check your email for feedback.'
+            session()->forget(['level', 'attempt_started', 'came_from']);
+            return response()->json([
+                'failed' => true,
+                'message' => 'You did not clear this level.',
             ]);
         }
+    }
+
+    public function testFinish()
+    {
+        return view('student.test-finish');
     }
 }

@@ -6,7 +6,7 @@
 <section class="container my-5">
     <div class="text-center mb-5">
         <h2 class="fw-bold text-primary">Thank You for Enrolling!</h2>
-        <p class="text-secondary">Your enrollment at <strong>TM Math Academy</strong> has been completed successfully.</p>
+        <p class="text-secondary">Your enrollment at <strong>TM Academy</strong> has been completed successfully.</p>
     </div>
 
     <div class="d-flex justify-content-center">
@@ -20,11 +20,16 @@
 
                 <h4 class="fw-semibold text-success mb-3">Payment Successful ðŸŽ‰</h4>
                 <p class="text-secondary mb-4">
-                    A confirmation email has been sent to your registered email address with your login credentials and next steps.
+                   A confirmation email has been sent to student’s email address with login credentials and next steps.
                 </p>
-                <a href="{{ route('home') }}" class="btn btn-primary rounded-pill px-5 py-2">
-                    Go to Home
-                </a>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <!--<a href="{{ $link }}" target="_blank" class="btn btn-primary rounded-pill px-5 py-2">-->
+                    <!--    Go to Questionnaire-->
+                    <!--</a>-->
+                    <a href="{{ route('home') }}" class="btn btn-outline-primary rounded-pill px-5 py-2">
+                        Go to Home
+                    </a>
+                </div>
             </div>
         </div>
     </div>

@@ -33,7 +33,7 @@
 </head>
 <body>
     <div class="container">
-        <h2>{{ $message }}</h2>
+        <h2>You did not clear this level.</h2>
         <p>Thank you for attempting the test. Please check your email for details.</p>
     </div>
 </body>

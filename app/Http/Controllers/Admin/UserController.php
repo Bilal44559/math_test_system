@@ -5,14 +5,21 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\EnrollmentCreatedMail;
+use App\Models\EnrollmentToken;
 use App\Models\User;
 use App\Models\Enrollment;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use App\Mail\RetakeTestMail;
 
 class UserController extends Controller
 {
     public function index()
     {
-        $users = Enrollment::paginate(10);
+        $users = Enrollment::with(['enrollment_tokens' => function ($q) { $q->latest(); }])->paginate(10);
         return view('admin.users.index', compact('users'));
     }
 
@@ -20,6 +27,31 @@ class UserController extends Controller
     {
         $enroll = Enrollment::findOrFail($id);
         return view('admin.users.show', compact('enroll'));
+    }
+
+    public function sendMail($id)
+    {
+        $enrollment = Enrollment::findOrFail($id);
+        $rawPassword = Str::random(10);
+        $user = User::where('id', $enrollment->user_id)->update(['password' => Hash::make($rawPassword)]);
+        $payload = json_encode([
+            'email' => $enrollment->email,
+            'password' => $rawPassword,
+            'enrollment_id' => $enrollment->id,
+        ]);
+
+        $token = Crypt::encryptString($payload);
+        $link = route('enroll.test-start', ['token' => $token]);
+        EnrollmentToken::where('enrollment_id', $id)->update([
+            'token' => $token,
+            'used' => 0,
+            'used_at' => null,
+            'expires_at' => now()->addHours(3)
+        ]);
+        // Mail::to($enrollment->email)->send(new EnrollmentCreatedMail($enrollment->email, $rawPassword, $link, $enrollment));
+        Mail::to($enrollment->email)->send(new RetakeTestMail($rawPassword, $link, $enrollment));
+        return redirect()->back()->with('success', 'Email sent successfully!');
+
     }
 
 

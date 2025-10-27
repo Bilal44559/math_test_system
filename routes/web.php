@@ -24,11 +24,11 @@ Route::get('/eligibility', [FrontendController::class, 'eligibility'])->name('el
 Route::get('/enroll', [FrontendController::class, 'enroll'])->name('enroll');
 Route::get('/payment', [FrontendController::class, 'payment'])->name('payment')->middleware(CheckEnrollmentSession::class);
 
-Route::post('/payment/process', [FrontendController::class, 'processPayment'])->name('payment.process');
+Route::post('/thanks', [FrontendController::class, 'processPayment'])->name('payment.process');
 Route::get('/refunds', [FrontendController::class, 'refunds'])->name('refunds');
+Route::get('/contact', [FrontendController::class, 'contact'])->name('contact');
 Route::get('/syllabus', [FrontendController::class, 'syllabus'])->name('syllabus');
 Route::get('/terms', [FrontendController::class, 'terms'])->name('terms');
-Route::get('/thanks', [FrontendController::class, 'thanks'])->name('thanks');
 Route::post('/enroll/start-payment', [FrontendController::class, 'initiateEnrollmentPayment'])->name('enroll.payment.start');
 Route::get('/enroll/test-start/{token}', [FrontendController::class, 'testStart'])
     ->name('enroll.test-start');
@@ -36,8 +36,12 @@ Route::get('/student/login', [FrontendController::class, 'studentLoginPage'])->n
 Route::post('/student/login', [FrontendController::class, 'studentLogin'])->name('student.submit-login');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/attempt', [FrontendController::class, 'questions'])->name('attempt.index');
+    Route::get('/student/attempt', [FrontendController::class, 'attemptPage'])->name('attempt.index');
+    Route::get('/student/questions', [FrontendController::class, 'questions'])->name('attempt.questions');
     Route::get('/test-already', [FrontendController::class, 'alreadyAttempted'])->name('test.already');
+    Route::get('/test-timeout', [FrontendController::class, 'testTimeout'])->name('test.timeout');
+    Route::get('/page-reload', [FrontendController::class, 'pageReload'])->name('page.reload');
+    Route::get('/test-finish', [FrontendController::class, 'testFinish'])->name('test.finish');
     Route::post('/attempt/submit', [FrontendController::class, 'submitQuestions'])->name('attempt.submit');
 });
 
@@ -63,6 +67,8 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy')->middleware('permission:delete_users');
 
         Route::post('/users/update-role', [UserController::class, 'updateRole'])->name('admin.users.updateRole')->middleware('permission:update_users_roles');
+
+        Route::get('/users/send-mail/{id}', [UserController::class, 'sendMail'])->name('admin.users.sendMail')->middleware('permission:users');
 
         // ================= Permission Management =================
         Route::get('/permissions', [PermissionController::class, 'index'])->name('admin.permissions.index')->middleware('permission:view_permissions');

@@ -76,7 +76,7 @@
                     <div class="icon icon-shape icon-sm text-center d-flex align-items-center justify-content-center">
                         <i class="fa-solid fa-book text-black text-sm"></i>
                     </div>
-                    <span class="sidenav-normal nav-link-text text-black">Attempt Questions<b class="caret"></b></span>
+                    <span class="sidenav-normal nav-link-text text-black">Test-Result's<b class="caret"></b></span>
                 </a>
             </li>
 

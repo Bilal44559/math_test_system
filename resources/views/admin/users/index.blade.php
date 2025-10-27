@@ -32,19 +32,26 @@
                                     <th class="text-uppercase font-weight-bolder">Email</th>
                                     <th class="text-uppercase font-weight-bolder">Phone</th>
                                     <th class="text-uppercase font-weight-bolder">PostCode</th>
+                                    <th class="text-uppercase font-weight-bolder">EOD</th>
                                     <th class="text-uppercase font-weight-bolder text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($users as $key => $user)
                                     <tr>
-                                        <td class="text-sm">{{ $key + 1 }}</td>
+                                        <!--<td class="text-sm">{{ $key + 1 }}</td>-->
+                                        <td class="text-sm">{{ 100 + $user->id }}</td>
                                         <td class="text-sm font-weight-bold">{{ $user->full_name }}</td>
                                         <td class="text-sm font-weight-bold">{{ $user->email }}</td>
                                         <td class="text-sm font-weight-bold"> {{ $user->phone }}
-                                        <td class="text-sm font-weight-bold"> {{ $user->postal_code }}
-                                        </td>
+                                        <td class="text-sm font-weight-bold"> {{ $user->postal_code }}</td>
+                                        <td class="text-sm font-weight-bold"> {{ $user->created_at ? \Carbon\Carbon::parse($user->created_at)->format('d, M Y') : '-' }}</td>
                                         <td class="text-end">
+                                            @if($user->enrollment_tokens && ($user->enrollment_tokens->used == 1 || $user->enrollment_tokens->expires_at < now()))
+                                                <a href="{{ route('admin.users.sendMail', $user->id) }}" class="text-info me-2" title="Send Email" onclick="return confirm('Are you sure you want to allow this user to retake the test?');">
+                                                    <i class="fas fa-envelope"></i>
+                                                </a>
+                                            @endif
                                             <a href="{{ route('admin.users.show', $user->id) }}" class="text-info me-2"
                                                 title="View">
                                                 <i class="fas fa-eye"></i>

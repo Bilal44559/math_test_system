@@ -20,17 +20,34 @@
                 @csrf
 
                 <div class="mb-3">
-                    <label for="Name" class="form-label fw-semibold text-secondary">Card Holder Name</label>
+                    <label for="Name" class="form-label fw-semibold text-secondary">Card Holder Name <span class="text-danger">*</span></label>
                     <input type="text" id="cardHolderName" name="card_holder_name" class="form-control" placeholder="Name"
                         style="text-transform: uppercase;" required>
                     <div class="invalid-feedback">Please enter card holder's name.</div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold text-secondary">Card Details</label>
-                    <div id="card-element" class="form-control p-3" style="height: auto;"></div>
-                    <div id="card-errors" class="text-danger mt-2"></div>
-                </div>
+    <label class="form-label fw-semibold text-secondary">Card Details</label>
+
+    <div class="mb-3">
+        <label class="small text-muted">Card Number <span class="text-danger">*</span></label>
+        <div id="card-number-element" class="form-control p-3" style="height: auto;"></div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="small text-muted">Expiry Date (MM/YY) <span class="text-danger">*</span></label>
+            <div id="card-expiry-element" class="form-control p-3" style="height: auto;"></div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="small text-muted">CVC <span class="text-danger">*</span></label>
+            <div id="card-cvc-element" class="form-control p-3" style="height: auto;"></div>
+        </div>
+    </div>
+
+    <div id="card-errors" class="text-danger mt-2"></div>
+</div>
+
 
                 {{-- 💰 Payment Summary --}}
                 <div class="border-top pt-3 mt-4">
@@ -93,29 +110,42 @@
         invalid: { color: "#fa755a", iconColor: "#fa755a" }
     };
 
-    const card = elements.create("card", { style: style });
-    card.mount("#card-element");
+    // create split elements
+    const cardNumber = elements.create('cardNumber', { style: style });
+    cardNumber.mount('#card-number-element');
 
-    card.on('change', function(event) {
-        const displayError = document.getElementById('card-errors');
-        displayError.textContent = event.error ? event.error.message : '';
+    const cardExpiry = elements.create('cardExpiry', { style: style });
+    cardExpiry.mount('#card-expiry-element');
+
+    const cardCvc = elements.create('cardCvc', { style: style });
+    cardCvc.mount('#card-cvc-element');
+
+    // handle errors from any element
+    [cardNumber, cardExpiry, cardCvc].forEach(el => {
+        el.on('change', event => {
+            const displayError = document.getElementById('card-errors');
+            displayError.textContent = event.error ? event.error.message : '';
+        });
     });
 
+    // form submit
     const form = document.getElementById('paymentForm');
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
 
         const cardHolderName = document.getElementById('cardHolderName').value;
 
+        // create payment method from cardNumber element
         const { paymentMethod, error } = await stripe.createPaymentMethod({
             type: 'card',
-            card: card,
+            card: cardNumber,
             billing_details: { name: cardHolderName },
         });
 
         if (error) {
             document.getElementById('card-errors').textContent = error.message;
         } else {
+            // append payment_method_id and submit
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'payment_method_id';

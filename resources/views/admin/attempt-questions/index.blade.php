@@ -4,7 +4,7 @@
 <div class="row my-5">
     <div class="col-12">
         <div class="card-header d-flex justify-content-between align-items-center text-black mb-3">
-            <h5 class="mb-0">Attempt Questions</h5>
+            <h5 class="mb-0">Test-Result's</h5>
         </div>
 
         <div class="card">
@@ -24,37 +24,59 @@
                 <div class="table-responsive p-3">
                     <table id="mcqs-list" class="table table-hover align-items-center">
                         <thead class="thead-light">
-                            <tr>
-                                <th class="text-uppercase font-weight-bolder">#</th>
-                                <th class="text-uppercase font-weight-bolder">Student Name</th>
-                                <th class="text-uppercase font-weight-bolder">Level</th>
-                                <th class="text-uppercase font-weight-bolder text-end">Total Questions</th>
-                                <th class="text-uppercase font-weight-bolder text-end">Correct Answers</th>
-                                <th class="text-uppercase font-weight-bolder text-end">Wrong Answers</th>
-                                <th class="text-uppercase font-weight-bolder text-end">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($attempts as $key => $attempt)
-                                <tr>
-                                    <td class="text-sm">{{ $key + 1 }}</td>
-                                    <td class="text-sm font-weight-bold">{{ $attempt->user->name }}</td>
-                                    <td class="text-sm font-weight-bold">{{ $attempt->level }}</td>
-                                    <td class="text-end text-sm font-weight-bold">
-                                        {{ $attempt->total_questions }}
-                                    </td>
-                                    <td class="text-end text-sm font-weight-bold">
-                                        {{ $attempt->correct_count }}
-                                    </td>
-                                    <td class="text-end text-sm font-weight-bold">
-                                        {{ $attempt->incorrect_count }}
-                                    </td>
-                                    <td class="text-end text-sm font-weight-bold">
-                                        {{ $attempt->status }}
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
+    <tr>
+        <th class="text-uppercase font-weight-bolder">#</th>
+        <th class="text-uppercase font-weight-bolder">Student Name</th>
+        <th class="text-uppercase font-weight-bolder">TD</th>
+        <th class="text-uppercase font-weight-bolder text-end">Level 1</th>
+        <th class="text-uppercase font-weight-bolder text-end">Level 2</th>
+        <th class="text-uppercase font-weight-bolder text-end">Level 3</th>
+        <th class="text-uppercase font-weight-bolder text-end">Status</th>
+    </tr>
+</thead>
+<tbody>
+    @foreach ($rows as $key => $row)
+        <tr>
+            <td class="text-sm">{{ $key + 1 }}</td>
+            <td class="text-sm font-weight-bold">{{ $row['user']->name }}</td>
+            <td class="text-sm font-weight-bold"> {{ $row['last_at'] ? \Carbon\Carbon::parse($row['last_at'])->format('d, M Y') : '-' }}</td>
+            @for ($lvl = 1; $lvl <= 3; $lvl++)
+                <td class="text-end text-sm font-weight-bold">
+                    @if (!empty($row['levels'][$lvl]))
+                        {{ $row['levels'][$lvl]['correct'] }}
+                    @else
+                        -
+                    @endif
+                </td>
+            @endfor
+
+            <!--<td class="text-end text-sm font-weight-bold">-->
+            <!--    Level {{ $row['last_level'] }}-->
+            <!--</td>-->
+            
+                    
+            <td class="text-end text-sm font-weight-bold">
+    @php
+        $lastLevel = $row['last_level'] ?? null;
+        $lastCorrect = $row['last_correct'] ?? 0;
+        $lastTotal = $row['last_total'] ?? 0;
+    @endphp
+
+    @if ($lastLevel == 1 && $lastCorrect <= 3)
+        <span class="text-danger">UQ</span>
+    @elseif ($lastLevel == 3 && $lastCorrect >= 12)
+        <span class="text-success">OQ</span>
+    @else
+        Level {{ $lastLevel }}
+    @endif
+</td>
+
+
+
+        </tr>
+    @endforeach
+</tbody>
+
                     </table>
                 </div>
             </div>

@@ -22,10 +22,19 @@ class Enrollment extends Model
         'phone',
         'postal_code',
         'address',
+        'guardians_email',
+        'unit_number',
+        'city',
+        'province',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function enrollment_tokens()
+    {
+        return $this->hasOne(EnrollmentToken::class);
     }
 }

@@ -11,6 +11,7 @@ class EnrollmentToken extends Model
         'token',
         'expires_at',
         'used',
+        'used_at'
     ];
 
     public function enrollment()

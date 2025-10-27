@@ -27,7 +27,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <input type="password" id="password"
-                                        class="form-control @error('password') is-invalid @enderror" value="{{ session('email', old('email')) }}" name="password"
+                                        class="form-control @error('password') is-invalid @enderror" value="{{ session('password', old('password')) }}" name="password"
                                         placeholder="Password" autocomplete="current-password" aria-label="Password">
                                     @error('password')
                                     <span class="invalid-feedback" role="alert">
